@@ -1,0 +1,17 @@
+{
+  "name": "bot_carreras",
+  "version": "1.0.0",
+  "description": "Implementaciones propias a partir del script de Keso",
+  "main": "bot_cameraRace.js",
+  "scripts": {
+    "start": "node bot_cameraRace.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "haxball.js": "^2.2.0",
+    "https-proxy-agent": "^7.0.5"
+  }
+}
