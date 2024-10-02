@@ -265,6 +265,8 @@ playersConn = {
 	...
 }
 */
+
+
 var driversList = {}
 /*
 driversList = {
@@ -314,11 +316,26 @@ var playerKicked = [" was kicked"," was banned"];
 var speedEnableChanges = ["OFF","ON"];
 var teams = ["spectators","red","blue"];
 
+let bannedPlayers = [];
+let bannedsConn = {};
+
+// conn de sery 3137392E32352E3231392E313333
+/*
+bannedsConn = {
+	player1.conn,
+	player2.conn
+}
+*/
+
+
 //#endregion
 
 //Inicia y configura sala
 //#region 
-var room = HBInit({roomName:"🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️",noPlayer:true,public:false,maxPlayers:20});
+
+let max = 20;
+
+var room = HBInit({roomName:"🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️",noPlayer:true,public:false,maxPlayers:max, geo:{code:"AR", ﻿lat: ﻿-34.549230885794, lon: -58.558065103689}});
 
 room.setScoreLimit(0);
 room.setTimeLimit(0);
@@ -1498,6 +1515,10 @@ room.onPlayerJoin = function(player){
 	if(!isNewPlayer) return false;
 
 	/*if(!(player.conn in playersConn)){*/
+		if (player.conn in bannedsConn) {
+			room.kickPlayer(player.id, "Excluído", true);
+		}
+		
 		addNewPlayer(player);
 		room.sendAnnouncement(`📢 Para entender como jugar usá !formato`, idJoined, 0x2FDE52, "italic", 2);
 		
@@ -1521,7 +1542,18 @@ room.onPlayerJoin = function(player){
 		if(publicMode && !onRaceSession && !onQualySession) {
 			room.sendAnnouncement(`📢 La próxima sesión está por comenzar`, idJoined, 0xA5FF78, "bold", 2);
 		}
+		
+		if (room.getPlayerList().length == max) {
+			let players = room.getPlayerList()
+			players.forEach(player => {
+				if (afkPlayers[player.id] && player.admin) {
+					room.kickPlayer(player.id, `AFK en sala llena!`, false)
+				}
+			})
+		}
+		
 	//}
+	
 
 	else if(onOfficialChampionship && playersConn[player.conn].isInTheRoom === false) {
 		playersConn[player.conn].isInTheRoom === true;
