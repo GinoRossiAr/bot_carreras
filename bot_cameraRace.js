@@ -453,6 +453,8 @@ var laps = 3;
 var onRaceSession = false;
 var showedRaceResults = false;
 var raceResults = [];
+let raceList = [];
+let lappedsList = [];
 /*
 raceResults = [
 
@@ -663,20 +665,23 @@ async function showRaceResults() {
     muteAll = true;
     let startTime, endTime;
 
-	console.log("Sending race results header");
-	startTime = Date.now();
-	room.sendAnnouncement(`${"".padEnd(72, "-")}\nResultados de la carrera:\nPos\t|\tPiloto\t|\tTiempo${onChampionship ? "\t|\tPuntos" : ""}`, null, colors.raceResults, fonts.raceResults, sounds.notifyRaceResults);
-	await wait(500);
-	endTime = Date.now();
-	console.log(`Header sent, waited ${endTime - startTime}ms`);
+    console.log("Sending race results header");
+    startTime = Date.now();
+    room.sendAnnouncement(`${"".padEnd(72, "-")}\nResultados de la carrera:\nPos\t|\tPiloto\t|\tTiempo${onChampionship ? "\t|\tPuntos" : ""}`, null, colors.raceResults, fonts.raceResults, sounds.notifyRaceResults);
+    await wait(500);
+    endTime = Date.now();
+    console.log(`Header sent, waited ${endTime - startTime}ms`);
 
-	let pos = 0;
+    let pos = 0;
 
-	for (const player of raceResults) {
-		const playerName = player.auth in playersAuth ? playersAuth[player.auth].name : player.name;
-		const playerTime = serializeTimeRace(player.timeRace);
-		const points = onChampionship ? `\t|\t${scoringSystem[pos] != null ? "+" + scoringSystem[pos].toString() + (player.name == _Circuit.BestTime[1] ? " (+1 Vuelta rápida)" : "") : "Sin puntos"}`: "";
-		const resultLine = `${++pos}\t|\t${playerName}\t|\t${playerTime}${points}`;
+    // Combinar raceResults y lappedsList
+    const combinedResults = [...raceResults, ...lappedsList];
+
+    for (const player of combinedResults) {
+        const playerName = player.auth in playersAuth ? playersAuth[player.auth].name : player.name;
+        const playerTime = player.timeRace < 0 ? `+${player.timeRace} LAPS` : serializeTimeRace(player.timeRace);
+        const points = onChampionship ? `\t|\t${scoringSystem[pos] != null ? "+" + scoringSystem[pos].toString() + (player.name == _Circuit.BestTime[1] ? " (+1 Vuelta rápida)" : "") : "Sin puntos"}`: "";
+        const resultLine = `${++pos}\t|\t${playerName}\t|\t${playerTime}${points}`;
 
         // Usar colores diferentes para los tres primeros lugares
         let announcementColor;
@@ -766,12 +771,12 @@ function setLeader(p) {
 	ongoingLap = driversList[currentLeader.id].currentLap;
 }
 
-function setLapChange() {
+/*function setLapChange() {
 	lapChangedByLeader = true;
 	setTimeout(() => {
 		lapChangedByLeader = false;
 	}, 10000);
-}
+}*/
 
 function announceWinner(p) {
 	room.sendAnnouncement(`🏁 ${p.name} ha ganado la carrera!`, null, colors.playerInResults, fonts.playerInResults, sounds.playerInResults);
@@ -803,11 +808,48 @@ function calculateExactTime(previousPos, currentPos, startDirection, linePositio
     return exactTime;
 }
 
-function handleLeader(player, playerData, exactLapTime, startTime) {
+function handleRace(player, playerData, exactLapTime, startTime) {
+	// Actualizar raceList
+    let indexRace = raceList.findIndex(r => r.auth === playersID[player.id].auth);
+    if (indexRace !== -1) {
+        raceList[indexRace].timeRace = exactLapTime;
+        raceList[indexRace].lapsCompleted = playerData.currentLap;
+    } else {
+        raceList.push({ auth: playersID[player.id].auth, timeRace: exactLapTime, lapsCompleted: playerData.currentLap, name: player.name });
+    }
+    raceList.sort((a, b) => {
+        if (a.lapsCompleted === b.lapsCompleted) {
+            return a.timeRace - b.timeRace;
+        }
+        return b.lapsCompleted - a.lapsCompleted;
+    });
+    indexRace = raceList.findIndex(r => r.auth === playersID[player.id].auth);
+
+	// Determinar el líder
+    let newLeaderAuth = raceList[0].auth;
+    let newLeader = room.getPlayerList().find(p => playersID[p.id].auth === newLeaderAuth);
+
+    // Anunciar el líder si ha cambiado
+    if (currentLeader == undefined || currentLeader.auth !== newLeader.auth) {
+        setLeader(newLeader);
+        announceLeader(newLeader);
+    }
+
     if (playerData.currentLap > laps) {
         if (playerData.currentLap > ongoingLap && !leaderFinished) {
             leaderFinished = true;
             announceWinner(player);
+
+			// Manejar jugadores rezagados
+            let leaderLapsCompleted = newLeader.lapsCompleted;
+            raceList.forEach(r => {
+                if (r.lapsCompleted < leaderLapsCompleted - 1) {
+					// -1 porque si no me suma una de más (11 - 9 por ej.)
+                    let lapsLost = leaderLapsCompleted - r.lapsCompleted - 1;
+                    lappedsList.push({ name: r.name, timeRace: lapsLost });
+                }
+            });
+
         } else if (leaderFinished) {
             finalPosition += 1;
             room.sendAnnouncement(`Terminaste en la posición ${finalPosition}`, player.id, colors.playerInResults, fonts.playerInResults, sounds.playerInResults);
@@ -816,20 +858,6 @@ function handleLeader(player, playerData, exactLapTime, startTime) {
         raceResults.push({ name: player.name, timeRace: scoresTime });
         room.setPlayerTeam(player.id, 0);
     } else {
-        if (currentLeader == undefined || afkPlayers[currentLeader.id]) {
-            setLeader(player);
-            currentPosition = 0;
-            if (playerData.currentLap <= laps) {
-                announceLeader(player);
-            } else {
-                leaderFinished = true;
-                announceWinner(player);
-            }
-        } else if (playerData.currentLap > ongoingLap) {
-            setLeader(player);
-            announceLeader(player);
-            currentPosition = 0;
-        }
         currentPosition += 1;
         room.sendAnnouncement(`Vuelta actual: ${playerData.currentLap}/${laps} | Pos. ${currentPosition}`, player.id, colors.lapChanged, fonts.lapChanged, sounds.lapChanged);
     }
@@ -904,7 +932,7 @@ function checkPlayerLapsRace() {
                 }
 
                 // Manejo del líder
-                handleLeader(p, playerData, exactLapTime, startTime);
+                handleRace(p, playerData, exactLapTime, startTime);
             }
         }
     });
@@ -1246,6 +1274,8 @@ function setRaceSession(lapsRace = DEFAULT_LAPS){
 	stopCamera = false;
 	laps = lapsRace;
 	raceResults = [];
+	raceList = [];
+	lappedsList = [];
 	_Circuit.BestTime = [0,undefined];
 
 	room.sendAnnouncement(`>>> Inicio de Sesión de Carrera <<<`,null,colors.sessionStart,fonts.sessionStart,sounds.sessionStart);
