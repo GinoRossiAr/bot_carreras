@@ -303,7 +303,7 @@ var adminsAuth = [
 	"RHl4qzpf7DWCTm8yinja0NPyYEzBCphhEMLPkaPVZE8",
 	"FipHk7SzqE-JAzXabVD-Cjy22fGQPUC4rmI4PZa4wR8",
 	"uWTZPBsVxGtIKAbzsGlI8dlwNJ4QgdiN2THIoJBHTvI",
-	"w055pejEU7a7XFvzeqneJ38qj1bDVz6bVQrPKqyMa8I"
+	"AF08JBZL_rzv388R9y5vEomqMofDSKR4zlvBmXJWzHw"
 ]
 
 var adminsNames = [
@@ -311,7 +311,7 @@ var adminsNames = [
 	"CHARLES LECLERC",
 	"Moreno Martins",
 	"ʙᴏᴛᴛᴀ",
-	"Russia  // Khan J"
+	"Russia // Khan J"
 ]
 
 let driversNames = [
@@ -385,7 +385,8 @@ let driversNames = [
 	"HOST | elpapu:v",
 	"giannn",
 	"Zasko",
-	"ianR15"
+	"ianR15",
+	"Ricciardelli"
 ]
 
 
