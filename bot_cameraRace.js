@@ -927,6 +927,11 @@ function handleRace(player, playerData, exactLapTime, startTime) {
     }
 }
 
+function setDriverAvatar(player, position) {
+    let avatar = position.toString(); // Convertir la posición a cadena de texto
+    room.setPlayerAvatar(player.id, avatar);
+}
+
 function checkPlayerLapsRace() {
     var players = room.getPlayerList().filter(p => room.getPlayerDiscProperties(p.id) != null);
 
@@ -953,7 +958,12 @@ function checkPlayerLapsRace() {
             if (!isDrivingInCorrectDirection(p)) {
                 room.kickPlayer(p.id, "Trolling detected!", false);
             } else {
-                playerData.passedBox = true;
+				if (playerData.currentLap > (laps / 2)) {
+					playerData.passedBox = true;
+				}
+                else {
+					room.sendAnnouncement(`📢 TODAVÍA NO PODÍAS INGRESAR A BOXES, PASADA INVÁLIDA.`, p.id, 0xF0E916, "bold", 2)
+				}
             }
         }
 
@@ -997,6 +1007,15 @@ function checkPlayerLapsRace() {
 
                 // Manejo del líder
                 handleRace(p, playerData, exactLapTime, startTime);
+
+				if (playerData.currentLap > (laps / 2) && !playerData.passedBox) {
+					room.sendAnnouncement(`📢 YA PODÉS INGRESAR A BOXES, NO ENTRES EN LA ÚLTIMA VUELTA!!!`, p.id, 0xF0E916, "bold", 2)
+				}
+
+				// Considerar p/campeonato
+				// Actualizar el avatar del jugador según su posición actual
+                let position = raceList.findIndex(r => r.auth === playerData.auth) + 1;
+                setDriverAvatar(p, position);
             }
         }
     });
