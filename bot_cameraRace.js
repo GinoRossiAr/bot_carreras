@@ -275,7 +275,7 @@ playersAuth = {
 */
 
 
-var driversList = {}
+var driversList = []
 /*
 driversList = {
 	racer1_ID: {
@@ -499,7 +499,8 @@ var millisecondsTimeout = 0;
 var onOfficialChampionship = false;
 var onChampionship = false;
 var championshipStandings = [];
-var scoringSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+var scoringSystem = [24, 20, 16, 12, 10, 8, 6, 4, 2, 1];
+// var scoringSystem = [15, 12, 10, 8, 6, 4, 2, 1];
 /*
 championshipStandings = [
 	{name: racer1, points: number},
@@ -536,8 +537,7 @@ function ifInLapChangeZone(player){
 
 function ifInBoxZone(player) {
     const playerDiscProps = room.getPlayerDiscProperties(player.id);
-    return _Circuit.MinX_box <= playerDiscProps.x && playerDiscProps.x <= _Circuit.MaxX_box &&
-           _Circuit.MinY_box <= playerDiscProps.y && playerDiscProps.y <= _Circuit.MaxY_box;
+    return _Circuit.MinX_box <= playerDiscProps.x && playerDiscProps.x <= _Circuit.MaxX_box && _Circuit.MinY_box <= playerDiscProps.y && playerDiscProps.y <= _Circuit.MaxY_box;
 }
 
 function isDrivingInCorrectDirection(player) {
@@ -668,10 +668,10 @@ function getCurrentSessionList() {
 function followPlayerByPosition(position) {
 	
     let playerList = getCurrentSessionList(); // Obtener la lista de jugadores según la sesión actual (clasificación o carrera)
-    if (playerList.length > 0) {
+    if (playerList.length > 0 && position > 0 && position <= playerList.length) {
         let playerData = playerList[position - 1];
         let player = room.getPlayerList().find(p => playersID[p.id].auth === playerData.auth);
-        if (player != undefined) {
+        if (player) {
             let playerDiscProps = room.getPlayerDiscProperties(player.id);
             if (playerDiscProps != null) {
                 room.setDiscProperties(0, { x: playerDiscProps.x, y: playerDiscProps.y, radius: 0 });
@@ -899,29 +899,24 @@ function handleRace(player, playerData, exactLapTime, startTime) {
 	// Obtener el índice actualizado del jugador en la lista de carreras
 	indexRace = raceList.findIndex(r => r.auth === playersID[player.id].auth);
 
-	// Determinar el líder
-    let newLeaderAuth = raceList[0].auth;
-    let newLeader = room.getPlayerList().find(p => playersID[p.id].auth === newLeaderAuth);
-
-    // Anunciar el líder si ha cambiado
-    if (currentLeader == undefined || currentLeader.auth !== newLeader.auth) {
-        setLeader(newLeader);
-        announceLeader(newLeader);
-		playerData.currentPosition = 1;
-    }
-
     if (playerData.currentLap > laps) {
         if (playerData.currentLap > ongoingLap && !leaderFinished) {
             leaderFinished = true;
             announceWinner(player);
 
 			// Manejar jugadores rezagados
-            let leaderLapsCompleted = driversList[newLeader.id].currentLap;
+            let leaderLapsCompleted = raceList[0].lapsCompleted;
+			console.log(`leaderLapsCompleted: ${leaderLapsCompleted}`);
             raceList.forEach(r => {
-                if (r.lapsCompleted < leaderLapsCompleted - 1) {
+                if (leaderLapsCompleted - r.lapsCompleted > 1) {
+					console.log(`r.lapsCompleted: ${r.lapsCompleted}`);
 					// -1 porque si no me suma una de más (11 - 9 por ej.)
                     let lapsLost = leaderLapsCompleted - r.lapsCompleted - 1;
+					console.log(`lapsLost: ${lapsLost}`);
                     lappedsList.push({ name: r.name, timeRace: lapsLost });
+					console.log(`lapped: ${r.name}, vueltas: +${lapsLost}`);
+					let lapped = room.getPlayerList().find(p => playersID[p.id].auth === r.auth);
+					room.setPlayerTeam(lapped.id, 0);
                 }
             });
 
@@ -933,11 +928,27 @@ function handleRace(player, playerData, exactLapTime, startTime) {
         raceResults.push({ name: player.name, timeRace: scoresTime });
         room.setPlayerTeam(player.id, 0);
     } else {
-		if (player != newLeader) {
-			playerData.currentPosition = raceList.findIndex(r => r.auth === playerData.auth) + 1;
+		// Determinar el líder
+		let newLeaderAuth = raceList[0].auth;
+		let newLeader = room.getPlayerList().find(p => playersID[p.id].auth === newLeaderAuth);
+	
+		// Anunciar el líder si ha cambiado
+		if (currentLeader == undefined || currentLeader.auth !== newLeader.auth || currentLeader.auth === newLeader.auth) {
+			setLeader(newLeader);
+			announceLeader(newLeader);
+			currentPosition = indexRace; // Debería ser 1 siempre
+			playerData.currentPosition = currentPosition;
 		}
-        room.sendAnnouncement(`Vuelta actual: ${playerData.currentLap}/${laps} | Pos. ${currentPosition}`, player.id, colors.lapChanged, fonts.lapChanged, sounds.lapChanged);
+
+		if (player != newLeader) {
+			currentPosition++;
+			playerData.currentPosition = currentPosition;
+		}
+        room.sendAnnouncement(`Vuelta actual: ${playerData.currentLap}/${laps} | Pos. ${playerData.currentPosition}`, player.id, colors.lapChanged, fonts.lapChanged, sounds.lapChanged);
     }
+
+	// Verificar el estado de raceList después de cada actualización
+    console.log("raceList:", raceList);
 }
 
 function setDriverAvatar(player, position) {
@@ -966,35 +977,43 @@ function checkPlayerLapsRace() {
         if (!ifInLapChangeZone(p) && sessionStarted && !playerData.startedRace) {
             playerData.startedRace = true;
         }
-		// Verificar si el jugador ha pasado por la zona de boxes
-        if (ifInBoxZone(p)) {
-            if (!isDrivingInCorrectDirection(p)) {
-                room.kickPlayer(p.id, "Trolling detected!", false);
-            } else {
-				if (playerData.currentLap > (laps / 2)) {
-					playerData.passedBox = true;
-				}
-                else {
-					room.sendAnnouncement(`📢 TODAVÍA NO PODÍAS INGRESAR A BOXES, PASADA INVÁLIDA.`, p.id, 0xF0E916, "bold", 2)
-				}
-            }
-        }
 
-        if (ifInLapChangeZone(p) || ifInBoxZone(p)) {
+        if (ifInLapChangeZone(p)) {
             if (!isDrivingInCorrectDirection(p)) {
                 room.kickPlayer(p.id, "Trolling detected!", false);
             } else if (!playerData.lapChanged) {
+				// Verificar si el jugador ha pasado por la zona de boxes
+				if (ifInBoxZone(p)) {
+					if (!isDrivingInCorrectDirection(p)) {
+						room.kickPlayer(p.id, "Trolling detected!", false);
+					} else {
+						if (playerData.currentLap > (laps / 2)) {
+							if (!playerData.passedBox) {
+								playerData.passedBox = true;
+								room.sendAnnouncement(`📢 Pasada por boxes válida!`, p.id, 0x2FDE52, "italic", 2);
+							}
+							else if (playerData.passedBox) {
+								room.sendAnnouncement(`📢 Pasada por boxes innecesaria`, p.id, 0xEE5454, "italic", 2);
+							}
+						}
+						else {
+							passedBox = false;
+							room.sendAnnouncement(`📢 TODAVÍA NO PODÍAS INGRESAR A BOXES, PASADA INVÁLIDA.`, p.id, 0xF0E916, "bold", 2);
+						}
+					}
+				}
                 playerData.lapChanged = true;
                 playerData.lapTimes[0] = currentTime;
+                playerData.currentLap++;
 
                 // Expulsar al jugador si está por iniciar la última vuelta sin haber pasado por boxes
-                if (playerData.currentLap == laps - 1 && !playerData.passedBox) {
+                if (playerData.currentLap == laps && !playerData.passedBox) {
                     room.setPlayerTeam(p.id, 0);
 					room.sendAnnouncement(`No paraste en boxes...`, p.id)
+					playerData.currentLap--;
                     return;
                 }
 
-                playerData.currentLap++;
 
                 var id = p.id;
 
@@ -1022,13 +1041,12 @@ function checkPlayerLapsRace() {
                 handleRace(p, playerData, exactLapTime, startTime);
 
 				if (playerData.currentLap > (laps / 2) && !playerData.passedBox) {
-					room.sendAnnouncement(`📢 YA PODÉS INGRESAR A BOXES, NO ENTRES EN LA ÚLTIMA VUELTA!!!`, p.id, 0xF0E916, "bold", 2)
+					room.sendAnnouncement(`📢 YA PODÉS INGRESAR A BOXES, ENTRA ANTES DE COMENZAR LA ÚLTIMA VUELTA!!!`, p.id, 0xF0E916, "bold", 2)
 				}
 
 				// Considerar p/campeonato
 				// Actualizar el avatar del jugador según su posición actual
-                let position = raceList.findIndex(r => r.auth === playerData.auth) + 1;
-                setDriverAvatar(p, position);
+                setDriverAvatar(p, playerData.currentPosition);
             }
         }
     });
@@ -1662,7 +1680,6 @@ function resetQualyPosition(player) {
 	}
 	else {
 		room.sendAnnouncement(`Solo se puede utilizar este comando dentro de la pista.`,player.id);
-		return false;
 	}
 }
 
@@ -1689,16 +1706,19 @@ room.onPlayerChat = function(player,message){
 			if (!onChampionship) {
 				if (onQualySession){
 					resetQualyPosition(player);
+					return false;
 				}
-				else room.sendAnnouncement(`Solo se puede utilizar este comando cuando hay una sesión de clasficación activa.`,player.id);
+				else room.sendAnnouncement(`Solo se puede utilizar este comando cuando hay una sesión de clasificación activa.`,player.id);
 				return false;
 			}
-			else {
+			else if (onChampionship){
 				if (onQualySession && timeQualy == Infinity){
 					resetQualyPosition(player);
+					return false;
 				}
 				else if (onQualySession && timeQualy != Infinity) {
 					room.sendAnnouncement(`No se puede usar este comando en clasificación OFICIAL.`,player.id);
+					return false;
 				}
 				else room.sendAnnouncement(`Solo se puede utilizar este comando cuando hay una sesión de prácticas OFICIALES activa.`,player.id);
 				return false;
@@ -1759,7 +1779,12 @@ room.onPlayerChat = function(player,message){
 		}
 		else if(messageNormalized == "!sesion"){
 			if(onQualySession) {
-				room.sendAnnouncement(`🏎️ Sesión actual: CLASIFICACIÓN a ${timeQualy/60} minuto/s en curso.`, player.id, 0xA5FF78, "bold", 2);
+				if (timeQualy != Infinity) {
+					room.sendAnnouncement(`🏎️ Sesión actual: CLASIFICACIÓN a ${timeQualy/60} minuto/s en curso.`, player.id, 0xA5FF78, "bold", 2);
+				}
+				else {
+					room.sendAnnouncement(`🏎️ Sesión actual: PRÁCTICAS sin final definido en curso.`, player.id, 0xA5FF78, "bold", 2);
+				}
 			}
 			else if(onRaceSession) {
 				room.sendAnnouncement(`🏁 Sesión actual: CARRERA a ${laps} vueltas en curso. Se paciente y esperá tu turno!`, player.id, 0xA5FF78, "bold", 2);
@@ -1816,7 +1841,7 @@ room.onPlayerChat = function(player,message){
 			
 				return false;
 			}
-			else {
+			else if (onChampionship){
 				if (onQualySession && timeQualy == Infinity) {
 					// Verificar si el jugador está en la lista de conductores
 					if (driversList[player.id] !== undefined) {
@@ -1923,7 +1948,7 @@ room.onPlayerChat = function(player,message){
 				room.sendAnnouncement(`Map list below:\n${_Circuits.map(c => c.Name + " [" + c.ID + "]").join('\n')}`,player.id,colors.info,fonts.info,sounds.info);
 				return false;
 			}
-			else if (messageNormalized = '!c') {
+			else if (messageNormalized == '!c') {
 				if (onQualySession || onRaceSession) {
 					let id = message.toLowerCase().split(" ")[1];
 					let drivers = getPlayersInTrack();
@@ -1935,6 +1960,7 @@ room.onPlayerChat = function(player,message){
 					else{
 						console.log(`seteando variable camara manual`);
 						manualCameraControl = true;
+						idCamera = id;
 						console.log(`variable cámara manual seteada`);
 						
 						spectators.forEach(spectator => {
@@ -1946,6 +1972,7 @@ room.onPlayerChat = function(player,message){
 				}
 				else {
 					room.sendAnnouncement(`Debe estar en una sesión activa para setear la cámara`,player.id,colors.mapLoadDeny,fonts.mapLoadDeny,sounds.mapLoadDeny);
+					return false;
 				}
 				
 			}
