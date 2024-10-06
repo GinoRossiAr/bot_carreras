@@ -1612,6 +1612,18 @@ room.onPlayerTeamChange = function(changedPlayer,byPlayer){
 let playersWithSpeedEnabled = {};
 
 
+function resetQualyPosition(player) {
+	if (room.getScores() != null && room.getPlayerDiscProperties(player.id) != null) {
+		qualyPosReset(player);
+		if(driversList[player.id].currentLap > 0) driversList[player.id].currentLap--;
+		driversList[player.id].invalidQualyLap = true;
+	}
+	else {
+		room.sendAnnouncement(`Solo se puede utilizar este comando dentro de la pista.`,player.id);
+		return false;
+	}
+}
+
 room.onPlayerChat = function(player,message){
 	console.log(`${player.name}: ${message}`);
 	if(message[0] == "!"){
@@ -1632,19 +1644,23 @@ room.onPlayerChat = function(player,message){
 			return false;
 		}
 		else if(messageNormalized == "!rr"){
-			if (onQualySession){
-				if (room.getScores() != null && room.getPlayerDiscProperties(player.id) != null) {
-					qualyPosReset(player);
-					if(driversList[player.id].currentLap > 0) driversList[player.id].currentLap--;
-					driversList[player.id].invalidQualyLap = true;
+			if (!onChampionship) {
+				if (onQualySession){
+					resetQualyPosition(player);
 				}
-				else {
-					room.sendAnnouncement(`Solo se puede utilizar este comando dentro de la pista.`,player.id);
-					return false;
-				}
+				else room.sendAnnouncement(`Solo se puede utilizar este comando cuando hay una sesión de clasficación activa.`,player.id);
+				return false;
 			}
-			else room.sendAnnouncement(`Solo se puede utilizar este comando cuando hay una sesión de clasficación activa.`,player.id);
-			return false;
+			else {
+				if (onQualySession && timeQualy == Infinity){
+					resetQualyPosition(player);
+				}
+				else if (onQualySession && timeQualy != Infinity) {
+					room.sendAnnouncement(`No se puede usar este comando en clasificación OFICIAL.`,player.id);
+				}
+				else room.sendAnnouncement(`Solo se puede utilizar este comando cuando hay una sesión de prácticas OFICIALES activa.`,player.id);
+				return false;
+			}
 		}
 		else if(messageNormalized == "!ds"){
 			room.sendAnnouncement("Discord del host: https://discord.gg/j5EnBaYJjw", player.id, 0x2FDE52, "italic", 2)
@@ -1739,32 +1755,49 @@ room.onPlayerChat = function(player,message){
 		}
 		
 		else if(message.toLowerCase().split(" ")[0] == commands.speed){
-			/*driversList[player.id].speedEnabled = !driversList[player.id].speedEnabled;
-			room.sendAnnouncement(`Speed is turned ${speedEnableChanges[Number(driversList[player.id].speedEnabled)]}`,player.id,colors.speed,fonts.speed,sounds.speed);
-			*/
 
-			// Verificar si el jugador está en la lista de conductores
-			if (driversList[player.id] !== undefined) {
-				/*driversList[player.id].speedEnabled = !driversList[player.id].speedEnabled;
-		
-				if (driversList[player.id].speedEnabled == false) {
-					room.setPlayerAvatar(player.id, null);
+			if (!onChampionship) {
+				// Verificar si el jugador está en la lista de conductores
+				if (driversList[player.id] !== undefined) {
+					if (!playersWithSpeedEnabled[player.id]) {
+						playersWithSpeedEnabled[player.id] = true;
+						room.sendAnnouncement(`Speed is turned ON`, player.id, colors.speed, fonts.speed, sounds.speed);
+					}
+					else {
+						delete playersWithSpeedEnabled[player.id]
+						room.setPlayerAvatar(player.id, null)
+						room.sendAnnouncement(`Speed is turned OFF`, player.id, colors.speed, fonts.speed, sounds.speed);
+					}
+				} else {
+					room.sendAnnouncement("No estás en una sesión.", player.id, colors.speed, fonts.speed, sounds.speed);
 				}
-				room.sendAnnouncement(`Speed is turned ${speedEnableChanges[Number(driversList[player.id].speedEnabled)]}`, player.id, colors.speed, fonts.speed, sounds.speed);*/
-				if (!playersWithSpeedEnabled[player.id]) {
-					playersWithSpeedEnabled[player.id] = true;
-					room.sendAnnouncement(`Speed is turned ON`, player.id, colors.speed, fonts.speed, sounds.speed);
+			
+				return false;
+			}
+			else {
+				if (onQualySession && timeQualy == Infinity) {
+					// Verificar si el jugador está en la lista de conductores
+					if (driversList[player.id] !== undefined) {
+						if (!playersWithSpeedEnabled[player.id]) {
+							playersWithSpeedEnabled[player.id] = true;
+							room.sendAnnouncement(`Speed is turned ON`, player.id, colors.speed, fonts.speed, sounds.speed);
+						}
+						else {
+							delete playersWithSpeedEnabled[player.id]
+							room.setPlayerAvatar(player.id, null)
+							room.sendAnnouncement(`Speed is turned OFF`, player.id, colors.speed, fonts.speed, sounds.speed);
+						}
+					} else {
+						room.sendAnnouncement("No estás en una sesión.", player.id, colors.speed, fonts.speed, sounds.speed);
+					}
+				
+					return false;
 				}
 				else {
-					delete playersWithSpeedEnabled[player.id]
-					room.setPlayerAvatar(player.id, null)
-					room.sendAnnouncement(`Speed is turned OFF`, player.id, colors.speed, fonts.speed, sounds.speed);
-				}
-			} else {
-				room.sendAnnouncement("No estás en una sesión.", player.id, colors.speed, fonts.speed, sounds.speed);
+					room.sendAnnouncement(`No se puede usar este comando en clasificación o carrera OFICIAL.`, player.id);
+					return false;
+				}	
 			}
-		
-			return false;
 		}
 		
 		else if(player.admin == true){
