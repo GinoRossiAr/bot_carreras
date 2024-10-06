@@ -1920,11 +1920,21 @@ room.onPlayerChat = function(player,message){
 				
 				return false;
 			}
+			else if (messageNormalized == '!mute') {
+				muteAll = !muteAll;
+				if (muteAll) {
+					room.sendAnnouncement(`Chat deshabilitado`, null, 0xA5FF78, "bold", 2);
+				}
+				else {
+					room.sendAnnouncement(`Chat habilitado`, null, 0xA5FF78, "bold", 2);
+				}
+				return false
+			}
 		}
 		room.sendAnnouncement(`${messageNormalized} no es un comando`,player.id,null,null,null);
 		return false;
 	}
-	else if (muteAll) {
+	else if (muteAll && !player.admin) {
 	room.sendAnnouncement("No podés escribir ahora!", player.id, 0xFF4A4A, "bold", 2);
 	return false;
 	}
