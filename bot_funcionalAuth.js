@@ -311,7 +311,8 @@ var adminsAuth = [
 	"RHl4qzpf7DWCTm8yinja0NPyYEzBCphhEMLPkaPVZE8",
 	"FipHk7SzqE-JAzXabVD-Cjy22fGQPUC4rmI4PZa4wR8",
 	"uWTZPBsVxGtIKAbzsGlI8dlwNJ4QgdiN2THIoJBHTvI",
-	"AF08JBZL_rzv388R9y5vEomqMofDSKR4zlvBmXJWzHw"
+	"AF08JBZL_rzv388R9y5vEomqMofDSKR4zlvBmXJWzHw",
+	"w055pejEU7a7XFvzeqneJ38qj1bDVz6bVQrPKqyMa8I"
 ]
 
 var adminsNames = [
@@ -394,7 +395,8 @@ let driversNames = [
 	"giannn",
 	"Zasko",
 	"ianR15",
-	"Ricciardelli"
+	"Ricciardelli",
+	"𝒮h𝔦ry𝔲"
 ]
 
 
@@ -1182,7 +1184,7 @@ function checkPlayerAdmin(player){
 	let isAuthAdmin = adminsAuth.includes(player.auth); // Verificar si player.auth está en adminsAuth
 
 
-	if((isAuthAdmin && isNameAdmin) || isMultipleAdminAccount){
+	if(((isAuthAdmin && isNameAdmin) || isMultipleAdminAccount) && publicMode){
 		console.log("entra")
 		room.setPlayerAdmin(player.id,true);
 		
