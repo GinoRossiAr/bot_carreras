@@ -322,7 +322,52 @@ var adminsNames = [
 	"Russia // Khan J"
 ]
 
+/*let driversNames = [
+	"Momito",
+	"giannn",
+	"Hemmingsen",
+	"Rax' 10",
+	"CH | Costu",
+	"Paréntesis",
+	"[MF] matee Boca", 
+	"Mate",
+	"|Migue",
+	"Kiltro",
+	"#MW cx´",
+	"zdx!",
+	"Bam25",
+	"Zasko",
+	"Raid",
+	"ianR15",
+	"ElJereKlien",
+	"DonD",
+	"Ricciardelli",
+	"𝒮h𝔦ry𝔲"
+]*/
+
 let driversNames = [
+	"Uruwhy",
+	"canø",
+	"Piptazo",
+	"Russia // Khan J",
+	"Soniko",
+	"El Galgo",
+	"chimiichan",
+	"Moreno Martins", 
+	"Mouu",
+	"LAPULGA",
+	'pinola"',
+	"Cubitto",
+	"SanTos",
+	"Toto",
+	"7z Pancho",
+	"ꂵꀤꋪꊼꂦ",
+	"Sery1493",
+	"Saxx_",
+	"BL",
+	'Juan Manuel Fangio'
+]
+/* let driversNames = [
 	"rusodeloeste",
 	"Bam25",
 	"Ximbastian Vettel",
@@ -396,7 +441,7 @@ let driversNames = [
 	"ianR15",
 	"Ricciardelli",
 	"𝒮h𝔦ry𝔲"
-]
+]*/
 
 
 var multipleAdminAccounts = {};
@@ -696,12 +741,15 @@ function checkRaceList() {
         activeDriversMap.set(playersID[driver.id].auth, driver);
     }
 
-    // Filtrar y actualizar la lista de carrera en su lugar
-    for (let i = raceList.length - 1; i >= 0; i--) {
-        let driverData = raceList[i];
-        let driver = activeDriversMap.get(driverData.auth);
-        if (driver == undefined) {
-            raceList.splice(i, 1); // Eliminar jugador desconectado o AFK
+    // Verificar si el líder ha terminado
+    if (!leaderFinished) {
+        // Filtrar y actualizar la lista de carrera en su lugar
+        for (let i = raceList.length - 1; i >= 0; i--) {
+            let driverData = raceList[i];
+            let driver = activeDriversMap.get(driverData.auth);
+            if (driver == undefined) {
+                raceList.splice(i, 1); // Eliminar jugador desconectado o AFK
+            }
         }
     }
 }
@@ -744,7 +792,7 @@ async function showRaceResults() {
 
     for (const player of combinedResults) {
         const playerName = player.auth in playersAuth ? playersAuth[player.auth].name : player.name;
-        const playerTime = player.timeRace < 0 ? `+${player.timeRace} LAPS` : serializeTimeRace(player.timeRace);
+        const playerTime = Number.isInteger(player.timeRace) ? `+${player.timeRace} LAPS` : serializeTimeRace(player.timeRace);
         const points = onChampionship ? `\t|\t${scoringSystem[pos] != null ? "+" + scoringSystem[pos].toString() + (player.name == _Circuit.BestTime[1] ? " (+1 Vuelta rápida)" : "") : "Sin puntos"}`: "";
         const resultLine = `${++pos}\t|\t${playerName}\t|\t${playerTime}${points}`;
 
@@ -932,8 +980,8 @@ function handleRace(player, playerData, exactLapTime, startTime) {
 		let newLeaderAuth = raceList[0].auth;
 		let newLeader = room.getPlayerList().find(p => playersID[p.id].auth === newLeaderAuth);
 	
-		// Anunciar el líder si ha cambiado
-		if (currentLeader == undefined || currentLeader.auth !== newLeader.auth || currentLeader.auth === newLeader.auth) {
+		// Anunciar el líder si ha cambiado, SOLO cuando el lider pasa por meta
+		if ((currentLeader == undefined || currentLeader.auth !== newLeader.auth || currentLeader.auth === newLeader.auth) && player == newLeader) {
 			setLeader(newLeader);
 			announceLeader(newLeader);
 			currentPosition = indexRace; // Debería ser 1 siempre
