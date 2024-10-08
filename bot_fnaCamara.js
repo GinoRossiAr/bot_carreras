@@ -322,14 +322,13 @@ var adminsNames = [
 	"Russia // Khan J"
 ]
 
-/*let driversNames = [
+let f2Names = [
 	"Momito",
 	"giannn",
 	"Hemmingsen",
 	"Rax' 10",
 	"CH | Costu",
 	"Paréntesis",
-	"[MF] matee Boca", 
 	"Mate",
 	"|Migue",
 	"Kiltro",
@@ -342,10 +341,11 @@ var adminsNames = [
 	"ElJereKlien",
 	"DonD",
 	"Ricciardelli",
-	"𝒮h𝔦ry𝔲"
-]*/
+	"𝒮h𝔦ry𝔲",
+	"Kev1"
+]
 
-let driversNames = [
+let f1Names = [
 	"Uruwhy",
 	"canø",
 	"Piptazo",
@@ -367,7 +367,7 @@ let driversNames = [
 	"BL",
 	'Juan Manuel Fangio'
 ]
-/* let driversNames = [
+let driversNames = [
 	"rusodeloeste",
 	"Bam25",
 	"Ximbastian Vettel",
@@ -441,7 +441,7 @@ let driversNames = [
 	"ianR15",
 	"Ricciardelli",
 	"𝒮h𝔦ry𝔲"
-]*/
+]
 
 
 var multipleAdminAccounts = {};
@@ -487,11 +487,12 @@ bannedsConn = {
 
 let max = 20;
 let trueism = true;
+let roomName = "🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️";
 
 changeTrueism();
 changeMax();
 
-var room = HBInit({roomName:"🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️",noPlayer:true,public:trueism,maxPlayers:max, geo:{code:"AR", ﻿lat: ﻿-34.549230885794, lon: -58.558065103689}});
+var room = HBInit({roomName:roomName, noPlayer:true, public:trueism, maxPlayers:max, geo:{code:"AR", ﻿lat: ﻿-34.549230885794, lon: -58.558065103689}});
 
 room.setScoreLimit(0);
 room.setTimeLimit(0);
@@ -544,8 +545,11 @@ var millisecondsTimeout = 0;
 var onOfficialChampionship = false;
 var onChampionship = false;
 var championshipStandings = [];
-var scoringSystem = [24, 20, 16, 12, 10, 8, 6, 4, 2, 1];
-// var scoringSystem = [15, 12, 10, 8, 6, 4, 2, 1];
+let scoringSystem = [24, 20, 16, 12, 10, 8, 6, 4, 2, 1];
+
+let scoringSystemMax = [24, 20, 16, 12, 10, 8, 6, 4, 2, 1];
+
+let scoringSystemMin = [15, 12, 10, 8, 6, 4, 2, 1];
 /*
 championshipStandings = [
 	{name: racer1, points: number},
@@ -1487,6 +1491,16 @@ function setRaceSession(lapsRace = DEFAULT_LAPS){
 			setPlayerConfig(player);
 			room.setPlayerTeam(player.id,_Circuit.Team);
 		});
+		let playersCount = getPlayersInTrack().length
+		room.sendAnnouncement(`CANTIDAD DE JUGADORES: ${playersCount}`, null, 0xF0E916, "bold", 2);
+		if (playersCount >= 15) {
+			scoringSystem = scoringSystemMax
+			room.sendAnnouncement(`📢 La puntuación tendrá el formato normal`, null, 0xF0E916, "bold", 2);
+		}
+		else {
+			scoringSystem = scoringSystemMin
+			room.sendAnnouncement(`📢 La puntuación tendrá el formato reducido`, null, 0xF0E916, "bold", 2);
+		}
 	}
 	
 	onRaceSession = true;
@@ -2032,8 +2046,24 @@ room.onPlayerChat = function(player,message){
 				else {
 					room.sendAnnouncement(`Chat habilitado`, null, 0xA5FF78, "bold", 2);
 				}
-				return false
+				return false;
 			}
+			else if (messageNormalized == '!f1') {
+				driversNames = f1Names;
+				return false;
+			}
+			else if (messageNormalized == '!f2') {
+				driversNames = f2Names;
+				return false;
+			}
+			/*else if (messageNormalized == '!puntos1') {
+				scoringSystem = scoringSystemMax;
+				return false;
+			}
+			else if (messageNormalized == '!puntos2') {
+				scoringSystem = scoringSystemMax;
+				return false;
+			}*/
 		}
 		room.sendAnnouncement(`${messageNormalized} no es un comando`,player.id,null,null,null);
 		return false;
@@ -2272,4 +2302,8 @@ function changeTrueism() {
 
 function changeMax() {
 	max = 30;
+}
+
+function changeRoomName() {
+	roomName = "🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️";
 }
