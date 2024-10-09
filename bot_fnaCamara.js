@@ -440,7 +440,8 @@ let driversNames = [
 	"Zasko",
 	"ianR15",
 	"Ricciardelli",
-	"𝒮h𝔦ry𝔲"
+	"𝒮h𝔦ry𝔲",
+	"Kev1"
 ]
 
 
@@ -491,6 +492,7 @@ let roomName = "🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️";
 
 changeTrueism();
 changeMax();
+changeRoomName();
 
 var room = HBInit({roomName:roomName, noPlayer:true, public:trueism, maxPlayers:max, geo:{code:"AR", ﻿lat: ﻿-34.549230885794, lon: -58.558065103689}});
 
@@ -1754,7 +1756,7 @@ room.onPlayerChat = function(player,message){
 			return false;
 		}
 		else if(messageNormalized == commands.help){
-			room.sendAnnouncement("Comandos disponibles: !help, !formato, !ds, !afk, !back, !rr (solo en clasificación), !sesion, !maps, !speed (en sesión activa), !fl (solo en carrera), !times (solo en clasificación), !bb, !nv",player.id,colors.commands,fonts.commands,sounds.commands);
+			room.sendAnnouncement("Comandos disponibles: !help, !formato, !discord, !afk, !back, !rr (solo en clasificación), !sesion, !maps, !speed (en sesión activa), !fl (solo en carrera), !times (solo en clasificación), !bb, !nv",player.id,colors.commands,fonts.commands,sounds.commands);
 			return false;
 		}
 		else if(messageNormalized == commands.mapInfo){
@@ -1786,7 +1788,7 @@ room.onPlayerChat = function(player,message){
 				return false;
 			}
 		}
-		else if(messageNormalized == "!ds"){
+		else if(messageNormalized == "!discord"){
 			room.sendAnnouncement("Discord del host: https://discord.gg/j5EnBaYJjw", player.id, 0x2FDE52, "italic", 2)
 			return false;
 		}

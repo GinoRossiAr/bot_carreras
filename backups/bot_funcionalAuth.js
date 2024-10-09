@@ -325,6 +325,51 @@ var adminsNames = [
 	"Soniko" // 7
 ]
 
+let f2Names = [
+	"Momito",
+	"giannn",
+	"Hemmingsen",
+	"Rax' 10",
+	"CH | Costu",
+	"Paréntesis",
+	"Mate",
+	"|Migue",
+	"Kiltro",
+	"#MW cx´",
+	"zdx!",
+	"Bam25",
+	"Zasko",
+	"Raid",
+	"ianR15",
+	"ElJereKlien",
+	"DonD",
+	"Ricciardelli",
+	"𝒮h𝔦ry𝔲",
+	"Kev1"
+]
+
+let f1Names = [
+	"Uruwhy",
+	"canø",
+	"Piptazo",
+	"Russia // Khan J",
+	"Soniko",
+	"El Galgo",
+	"chimiichan",
+	"Moreno Martins", 
+	"Mouu",
+	"LAPULGA",
+	'pinola"',
+	"Cubitto",
+	"SanTos",
+	"Toto",
+	"7z Pancho",
+	"ꂵꀤꋪꊼꂦ",
+	"Sery1493",
+	"Saxx_",
+	"BL",
+	'Juan Manuel Fangio'
+]
 let driversNames = [
 	"rusodeloeste",
 	"Bam25",
@@ -398,7 +443,8 @@ let driversNames = [
 	"Zasko",
 	"ianR15",
 	"Ricciardelli",
-	"𝒮h𝔦ry𝔲"
+	"𝒮h𝔦ry𝔲",
+	"Kev1"
 ]
 
 
@@ -445,10 +491,13 @@ bannedsConn = {
 
 let max = 20;
 let trueism = true;
+let roomName = "🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️";
 
 changeTrueism();
+changeMax();
+changeRoomName();
 
-var room = HBInit({roomName:"🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️",noPlayer:true,public:trueism,maxPlayers:max, geo:{code:"AR", ﻿lat: ﻿-34.549230885794, lon: -58.558065103689}});
+var room = HBInit({roomName:roomName,noPlayer:true,public:trueism,maxPlayers:max, geo:{code:"AR", ﻿lat: ﻿-34.549230885794, lon: -58.558065103689}});
 
 room.setScoreLimit(0);
 room.setTimeLimit(0);
@@ -723,6 +772,7 @@ let leaderFinished = false;
 let lapChangedByLeader = false;
 let finalPosition = 1;
 let currentPosition = 0;
+let noPlayers = false;
 
 // Función para obtener el jugador en la primera posición
 function getCurrentLeader() {
@@ -1108,6 +1158,10 @@ async function endSession() {
 		if (raceResults.length != 0) {
 			await showRaceResults();
 		}
+		else {
+			noPlayers = true;
+		}
+
 		if(onChampionship) {
 			await updateChampionshipStandings();
 		}
@@ -1175,7 +1229,12 @@ async function configPublicMode(){
 			circuitChange(0);
 		}
 	
-	} else {
+	} 
+	else if (noPlayers){
+		room.sendAnnouncement(`No hay jugadores activos para terminar la carrera`);
+		circuitChange(0);
+	}
+	else {
 		circuitChange(9000);
 	}
 }
@@ -1229,6 +1288,7 @@ function setRaceSession(lapsRace = DEFAULT_LAPS){
 	laps = lapsRace;
 	raceResults = [];
 	_Circuit.BestTime = [0,undefined];
+	noPlayers = false;
 
 	room.sendAnnouncement(`>>> Inicio de Sesión de Carrera <<<`,null,colors.sessionStart,fonts.sessionStart,sounds.sessionStart);
 	room.sendAnnouncement(`Vueltas: ${laps}`,null,colors.laps,fonts.laps,sounds.laps);
@@ -1480,7 +1540,7 @@ room.onPlayerChat = function(player,message){
 			return false;
 		}
 		else if(messageNormalized == commands.help){
-			room.sendAnnouncement("Comandos disponibles: !help, !formato, !ds, !afk, !back, !rr (solo en clasificación), !sesion, !maps, !speed (en sesión activa), !fl (solo en carrera), !times (solo en clasificación), !bb, !nv",player.id,colors.commands,fonts.commands,sounds.commands);
+			room.sendAnnouncement("Comandos disponibles: !help, !formato, !discord, !afk, !back, !rr (solo en clasificación), !sesion, !maps, !speed (en sesión activa), !fl (solo en carrera), !times (solo en clasificación), !bb, !nv",player.id,colors.commands,fonts.commands,sounds.commands);
 			return false;
 		}
 		else if(messageNormalized == commands.mapInfo){
@@ -1505,7 +1565,7 @@ room.onPlayerChat = function(player,message){
 			else room.sendAnnouncement(`Solo se puede utilizar este comando cuando hay una sesión de clasficación activa.`,player.id);
 			return false;
 		}
-		else if(messageNormalized == "!ds"){
+		else if(messageNormalized == "!discord"){
 			room.sendAnnouncement("Discord del host: https://discord.gg/j5EnBaYJjw", player.id, 0x2FDE52, "italic", 2)
 			return false;
 		}
@@ -1710,13 +1770,34 @@ room.onPlayerChat = function(player,message){
 				room.sendAnnouncement(`Map list below:\n${_Circuits.map(c => c.Name + " [" + c.ID + "]").join('\n')}`,player.id,colors.info,fonts.info,sounds.info);
 				return false;
 			}
+			else if (messageNormalized == '!f1') {
+				driversNames = f1Names;
+				return false;
+			}
+			else if (messageNormalized == '!f2') {
+				driversNames = f2Names;
+				return false;
+			}
 		}
 		room.sendAnnouncement(`${messageNormalized} no es un comando`,player.id,null,null,null);
 		return false;
 	}
 	else if (muteAll) {
-	room.sendAnnouncement("No podés escribir ahora!", player.id, 0xFF4A4A, "bold", 2);
-	return false;
+		room.sendAnnouncement("No podés escribir ahora!", player.id, 0xFF4A4A, "bold", 2);
+		return false;
+	}
+
+	if (adminsNames.includes(player.name) && player.admin) {
+		room.sendAnnouncement(`[🛡️ ADMIN 🛡️] ${player.name}: ${message}`, null, 0xFFD700, "normal", 1);
+		return false;
+	}
+	else if (f1Names.includes(player.name)) {
+		room.sendAnnouncement(`[🔴 PILOTO F1 🏎️] ${player.name}: ${message}`, null, 0xFF615C, "normal", 1);
+		return false;
+	}
+	else if (f2Names.includes(player.name)) {
+		room.sendAnnouncement(`[🔵 PILOTO F2 🏎️] ${player.name}: ${message}`, null, 0x0080ff, "normal", 1);
+		return false;
 	}
 }
 
@@ -1822,6 +1903,7 @@ room.onPlayerJoin = function(player){
 
 room.onPlayerLeave = function(player){
 	console.log(`${player.name} has left`);
+	console.log(`tu reputisima auth era ${player.auth}`);
 
 	delete driversList[player.id];
 	if (player.id in playersID) {
@@ -1944,4 +2026,8 @@ function changeTrueism() {
 
 function changeMax() {
 	max = 20;
+}
+
+function changeRoomName() {
+	roomName = "🏎️🏆🏁 FORMULA 1 Argentina 🇦🇷🏁🏆🏎️";
 }
