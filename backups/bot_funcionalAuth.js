@@ -471,16 +471,12 @@ var speedEnableChanges = ["OFF","ON"];
 var teams = ["spectators","red","blue"];
 
 let bannedPlayers = [];
-let bannedsConn = [
-"3230312E3231332E31382E313632"
-];
 
 // conn de sery 3137392E32352E3231392E313333
 /*
-bannedsConn = {
-	player1.conn,
-	player2.conn
-}
+bannedPlayers = [
+	{player1.name, player1.conn}
+]
 */
 
 
@@ -1276,7 +1272,7 @@ function checkPlayerAdmin(player){
 }
 
 function addNewPlayer(player){
-	playersID[player.id] = {auth: player.auth};
+	playersID[player.id] = {auth: player.auth, conn: player.conn};
 	playersConn[player.conn] = {name: player.name, id: player.id, isInTheRoom: true};
 	playersAuth[player.auth] = {name: player.name, id: player.id, isInTheRoom: true};
 }
@@ -1802,8 +1798,10 @@ room.onPlayerChat = function(player,message){
 }
 
 room.onPlayerKicked = function(kickedPlayer, reason, ban, byPlayer){
-	if (ban) {
-		bannedsConn.push(kickedPlayer.conn)
+    console.log(`tu reputisima conn era ${playersID[kickedPlayer.id].conn}`); // Línea 1895
+
+	if (ban && !bannedPlayers.some(banned => banned.conn === playersID[kickedPlayer.id].conn)) {
+		bannedPlayers.push({name: kickedPlayer.name, conn:playersID[kickedPlayer.id].conn})
 	}
 }
 
@@ -1818,8 +1816,8 @@ room.onPlayerJoin = function(player){
 	if(!isNewPlayer) return false;
 
 	if(!(player.auth in playersAuth)){
-		if (bannedsConn.includes(player.conn)) {
-			room.kickPlayer(player.id, "Apelaciones en https://discord.gg/j5EnBaYJjw", true);
+		if (bannedPlayers.some(banned => banned.conn === player.conn)) {
+			room.kickPlayer(player.id, "Permaban. Apelaciones en https://discord.gg/j5EnBaYJjw", true);
 		}
 		
 		addNewPlayer(player);
@@ -1901,10 +1899,16 @@ room.onPlayerJoin = function(player){
 	}
 }
 
-room.onPlayerLeave = function(player){
-	console.log(`${player.name} has left`);
-	console.log(`tu reputisima auth era ${player.auth}`);
+async function checkIfBanned() {
+	await wait(100);
+	return Promise.resolve();
+}
 
+room.onPlayerLeave = async function(player){
+	console.log(`${player.name} has left`);
+
+	await checkIfBanned();
+	
 	delete driversList[player.id];
 	if (player.id in playersID) {
 		// Verificar que playersID[player.id].auth existe
@@ -1936,6 +1940,7 @@ room.onPlayerLeave = function(player){
 	delete lastActive[player.id];
 
 	// Debería borrar todas las referencias al jugador en los objetos de gestión de AFKs para no tener tanta info al pedo en memoria
+	return Promise.resolve();
 }
 
 
