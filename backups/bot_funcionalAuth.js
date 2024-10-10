@@ -361,7 +361,7 @@ let f1Names = [
 	"LAPULGA",
 	'pinola"',
 	"Cubitto",
-	"SanTos",
+	"sanTos",
 	"Toto",
 	"7z Pancho",
 	"ꂵꀤꋪꊼꂦ",
@@ -1797,10 +1797,15 @@ room.onPlayerChat = function(player,message){
 	}
 }
 
+function showBanneds() {
+	console.log(`bannedPlayers = ${JSON.stringify(bannedPlayers, null, 2)}`);
+}
+
 room.onPlayerKicked = function(kickedPlayer, reason, ban, byPlayer){
     console.log(`tu reputisima conn era ${playersID[kickedPlayer.id].conn}`); // Línea 1895
+	let isAlreadyBanned = bannedPlayers.some(banned => banned.conn === playersID[kickedPlayer.id].conn)
 
-	if (ban && !bannedPlayers.some(banned => banned.conn === playersID[kickedPlayer.id].conn)) {
+	if (ban && !isAlreadyBanned) {
 		bannedPlayers.push({name: kickedPlayer.name, conn:playersID[kickedPlayer.id].conn})
 	}
 }
