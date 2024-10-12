@@ -357,9 +357,9 @@ let f1Names = [
 	"Mouu",
 	"LAPULGA",
 	'pinola"',
-	"Cubitto",
-	"SanTos",
-	"Toto",
+	"cubitto",
+	"sanTos",
+	"toto",
 	"7z Pancho",
 	"ꂵꀤꋪꊼꂦ",
 	"Sery1493",
@@ -379,7 +379,7 @@ let driversNames = [
 	"zdx!",
 	'pinola"',
 	"Piptazo",
-	"Toto",
+	"toto",
 	"Kiltro",
 	"DOBLE 5",
 	"chimiichan",
@@ -397,7 +397,7 @@ let driversNames = [
 	"canø",
 	"traverso",
 	"Medina Ssk",
-	"Cubitto",
+	"cubitto",
 	"DonD",
 	"Uruwhy",
 	"sanzhh",
@@ -603,16 +603,6 @@ function slowPlayer(player) {
         xspeed: playerDiscProps.xspeed * 0.985,
         yspeed: playerDiscProps.yspeed * 0.985
     });
-    driversList[player.id].inBox = true;
-}
-
-function unslowPlayer(player) {
-    const playerDiscProps = room.getPlayerDiscProperties(player.id);
-    room.setPlayerDiscProperties(player.id, {
-        xspeed: playerDiscProps.xspeed / 0.985,
-        yspeed: playerDiscProps.yspeed / 0.985
-    });
-    driversList[player.id].inBox = false;
 }
 
 
@@ -1012,16 +1002,18 @@ function handleRace(player, playerData, exactLapTime, startTime) {
 		let newLeader = room.getPlayerList().find(p => playersID[p.id].auth === newLeaderAuth);
 	
 		// Anunciar el líder si ha cambiado, SOLO cuando el lider pasa por meta
-		if ((currentLeader == undefined || currentLeader.auth !== newLeader.auth || currentLeader.auth === newLeader.auth) && player == newLeader) {
+		if ((currentLeader == undefined || currentLeader.auth !== newLeader.auth || currentLeader.auth === newLeader.auth) && player.auth == newLeader.auth) {
 			setLeader(newLeader);
 			announceLeader(newLeader);
-			currentPosition = indexRace; // Debería ser 1 siempre
+			currentPosition = indexRace + 1; // Debería ser 1 siempre
 			playerData.currentPosition = currentPosition;
+			console.log(`currentposition lid: ${currentPosition}`)
 		}
 
-		if (player != newLeader) {
+		if (player.auth != newLeader.auth) {
 			currentPosition++;
 			playerData.currentPosition = currentPosition;
+			console.log(`currentposition: ${currentPosition}`)
 		}
         room.sendAnnouncement(`Vuelta actual: ${playerData.currentLap}/${laps} | Pos. ${playerData.currentPosition}`, player.id, colors.lapChanged, fonts.lapChanged, sounds.lapChanged);
     }
@@ -1347,9 +1339,6 @@ function checkPlayerLapsQualy() {
 		if (ifInSlowZone(p)) {
 			slowPlayer(p);
 		}
-		if (!ifInSlowZone(p) && driversList[p.id].inBox) {
-			unslowPlayer(p);
-		}
     });
 }
 
@@ -1377,7 +1366,6 @@ function setPlayerConfig(player) {
         lastExactLapTime: 0, // Añadir lastExactLapTime para almacenar el tiempo exacto de la última vuelta
 		passedBox: false, // Añadir passedBox para verificar si el jugador ha pasado por la zona de boxes
 		currentPosition: 0,
-		inBox: false
     };
 }
 //#endregion

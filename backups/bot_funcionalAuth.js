@@ -306,6 +306,16 @@ driversList = {
 @Moreno Martins
 */
 
+
+let fiaNames = [
+	"CHARLES LECLERC",
+	"ʙᴏᴛᴛᴀ"
+]
+
+let sponsorsNames = [
+	"Campi"
+]
+
 var adminsAuth = [
 	"TjC2O2ByJ9D0nbMW9ha8Een3IguFvjhnSK4bgvawok8",
 	"RHl4qzpf7DWCTm8yinja0NPyYEzBCphhEMLPkaPVZE8",
@@ -313,8 +323,10 @@ var adminsAuth = [
 	"uWTZPBsVxGtIKAbzsGlI8dlwNJ4QgdiN2THIoJBHTvI",
 	"AF08JBZL_rzv388R9y5vEomqMofDSKR4zlvBmXJWzHw",
 	"w055pejEU7a7XFvzeqneJ38qj1bDVz6bVQrPKqyMa8I",
-	"4_PvrfdD6ZqykiTBYnY2KJI88-b3V7uXj2xvUCIYkyc"
+	"4_PvrfdD6ZqykiTBYnY2KJI88-b3V7uXj2xvUCIYkyc",
+	"BqH6UWxotyv0xMGMH-3uSiubrqc1s6OenTasr4Lnigo"
 ]
+
 
 var adminsNames = [
 	"keso", // 1
@@ -322,7 +334,8 @@ var adminsNames = [
 	"Moreno Martins", // 3
 	"ʙᴏᴛᴛᴀ", // 4
 	"Russia // Khan J", // 5-6
-	"Soniko" // 7
+	"Soniko", // 7
+	"manu" // 8
 ]
 
 let f2Names = [
@@ -360,9 +373,9 @@ let f1Names = [
 	"Mouu",
 	"LAPULGA",
 	'pinola"',
-	"Cubitto",
+	"cubitto",
 	"sanTos",
-	"Toto",
+	"toto",
 	"7z Pancho",
 	"ꂵꀤꋪꊼꂦ",
 	"Sery1493",
@@ -382,7 +395,7 @@ let driversNames = [
 	"zdx!",
 	'pinola"',
 	"Piptazo",
-	"Toto",
+	"toto",
 	"Kiltro",
 	"DOBLE 5",
 	"chimiichan",
@@ -400,7 +413,7 @@ let driversNames = [
 	"canø",
 	"traverso",
 	"Medina Ssk",
-	"Cubitto",
+	"cubitto",
 	"DonD",
 	"Uruwhy",
 	"sanzhh",
@@ -1783,8 +1796,16 @@ room.onPlayerChat = function(player,message){
 		return false;
 	}
 
-	if (adminsNames.includes(player.name) && player.admin) {
-		room.sendAnnouncement(`[🛡️ ADMIN 🛡️] ${player.name}: ${message}`, null, 0xFFD700, "normal", 1);
+	if (fiaNames.includes(player.name)) {
+		room.sendAnnouncement(`[🛡️ FIA 🛡️] ${player.name}: ${message}`, null, 0xFFD700, "normal", 1);
+		return false;
+	}
+	else if (sponsorsNames.includes(player.name)) {
+		room.sendAnnouncement(`[🔰 SPONSOR 🔰] ${player.name}: ${message}`, null, 0x00E300, "normal", 1);
+		return false;
+	}
+	else if (adminsNames.includes(player.name) && player.admin) {
+		room.sendAnnouncement(`[👮 MOD 👮] ${player.name}: ${message}`, null, 0xFF33D0, "normal", 1);
 		return false;
 	}
 	else if (f1Names.includes(player.name)) {
@@ -1802,7 +1823,7 @@ function showBanneds() {
 }
 
 room.onPlayerKicked = function(kickedPlayer, reason, ban, byPlayer){
-    console.log(`tu reputisima conn era ${playersID[kickedPlayer.id].conn}`); // Línea 1895
+    // console.log(`tu reputisima conn era ${playersID[kickedPlayer.id].conn}`); // Línea 1895
 	let isAlreadyBanned = bannedPlayers.some(banned => banned.conn === playersID[kickedPlayer.id].conn)
 
 	if (ban && !isAlreadyBanned) {
