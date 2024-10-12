@@ -326,7 +326,6 @@ let f2Names = [
 	"Momito",
 	"giannn",
 	"Hemmingsen",
-	"Rax' 10",
 	"CH | Costu",
 	"Paréntesis",
 	"Mate",
@@ -342,7 +341,8 @@ let f2Names = [
 	"DonD",
 	"Ricciardelli",
 	"𝒮h𝔦ry𝔲",
-	"Kev1"
+	"Kev1",
+	"Aspen102.3"
 ]
 
 let f1Names = [
@@ -441,7 +441,8 @@ let driversNames = [
 	"ianR15",
 	"Ricciardelli",
 	"𝒮h𝔦ry𝔲",
-	"Kev1"
+	"Kev1",
+	"Aspen102.3"
 ]
 
 
@@ -1141,9 +1142,12 @@ function followProvisionalPole() {
 			if (playerDiscProps != null) {
 				room.setDiscProperties(0, { x: playerDiscProps.x, y: playerDiscProps.y, radius: 0 });
 			}
+			else {
+				room.setDiscProperties(0, { x: 0, y: 0, radius: 0 });
+			}
 		}
 		else {
-			room.setDiscProperties(0, { x: playerDiscProps.x, y: playerDiscProps.y, radius: 0 });
+			room.setDiscProperties(0, { x: 0, y: 0, radius: 0 });
 		}
 	}
 }
