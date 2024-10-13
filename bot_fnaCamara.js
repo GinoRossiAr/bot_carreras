@@ -637,13 +637,17 @@ function qualyPosReset(player){
 	room.setPlayerDiscProperties(player.id,{x: _Circuit.qualyPosReset[0], y: _Circuit.qualyPosReset[1], xspeed: 0, yspeed: 0});
 }
 
-function setGrid(){
-	qualyList.filter(playerInQualy => playerInQualy.auth in playersAuth).forEach(playerInQualy => {
-		let player = room.getPlayer(playersAuth[playerInQualy.auth].id);
-		if ((player !== undefined) && (!afkPlayers[player.id])) room.setPlayerTeam(player.id,_Circuit.Team);
-	});
+function setGrid() {
+    qualyList.filter(playerInQualy => playerInQualy.auth in playersAuth).forEach(playerInQualy => {
+        let playerAuth = playersAuth[playerInQualy.auth];
+        if (playerAuth) {
+            let player = room.getPlayerList().find(p => p.auth === playerInQualy.auth);
+            if (player && !afkPlayers[player.id]) {
+                room.setPlayerTeam(player.id, _Circuit.Team);
+            }
+        }
+    });
 }
-
 async function showChampionshipStandings(){
 	let startTime, endTime;
 
@@ -2059,10 +2063,10 @@ room.onPlayerChat = function(player,message){
 			else if (messageNormalized == '!c') {
 				if (onQualySession || onRaceSession) {
 					let id = message.toLowerCase().split(" ")[1];
-					let drivers = getPlayersInTrack();
+					let drivers = getCurrentSessionList();
 					let spectators = getSpects();
 
-					if(id < 1 || id > drivers.length || id == undefined || isNaN(id)){
+					if(id < 1 || id > drivers.length || id == undefined || isNaN(id) || drivers[id] == undefined){
 						room.sendAnnouncement(`Ese jugador no se encuentra en la lista`,player.id,colors.mapLoadDeny,fonts.mapLoadDeny,sounds.mapLoadDeny);
 					}
 					else{
