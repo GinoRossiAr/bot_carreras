@@ -619,17 +619,17 @@ function qualyPosReset(player){
 	room.setPlayerDiscProperties(player.id,{x: _Circuit.qualyPosReset[0], y: _Circuit.qualyPosReset[1], xspeed: 0, yspeed: 0});
 }
 
-function setGrid() {
-    qualyList.filter(playerInQualy => playerInQualy.auth in playersAuth).forEach(playerInQualy => {
-        let playerAuth = playersAuth[playerInQualy.auth];
-        if (playerAuth) {
-            let player = room.getPlayerList().find(p => p.auth === playerInQualy.auth);
-            if (player && !afkPlayers[player.id]) {
-                room.setPlayerTeam(player.id, _Circuit.Team);
-            }
-        }
-    });
+function setGrid(){
+	qualyList.filter(playerInQualy => playerInQualy.auth in playersAuth).forEach(playerInQualy => {
+		if (playersAuth[playerInQualy.auth]) {
+			let player = room.getPlayer(playersAuth[playerInQualy.auth].id);
+			if (player) {
+				if (!afkPlayers[player.id]) room.setPlayerTeam(player.id,_Circuit.Team);
+			}
+		}
+	});
 }
+
 
 async function showChampionshipStandings(){
 	let startTime, endTime;
@@ -1318,7 +1318,7 @@ function setRaceSession(lapsRace = DEFAULT_LAPS){
 
 	setGrid();
 
-	room.getPlayerList().filter(player => !(player.id in multipleAdminAccounts) && !(player.id in afkPlayers)).forEach(player => {
+	room.getPlayerList().filter(player => !(player.id in multipleAdminAccounts) && !(afkPlayers[player.id])).forEach(player => {
 		setPlayerConfig(player);
 		room.setPlayerTeam(player.id,_Circuit.Team);
 	});
@@ -1612,31 +1612,33 @@ room.onPlayerChat = function(player,message){
 				room.sendAnnouncement("No estabas AFK!", player.id, 0xFF4A4A, "bold", 2)
 				return false;
 			}
-			if (onQualySession && !onChampionship) {
-				delete afkPlayers[player.id];
-				room.setPlayerTeam(player.id,_Circuit.Team);
-				room.setPlayerDiscProperties(player.id, {cGroup: room.CollisionFlags.c0});
-				qualyPosReset(player);
-				room.sendAnnouncement("Ya no estás AFK!", player.id, 0x24DCF0, "bold", 2)
-				return false;
+			else {
+				afkPlayers[player.id] = false;
 			}
-			else if (onQualySession && onChampionship) {
-				if (driversNames.includes(player.name)) {
-					delete afkPlayers[player.id];
+			if (onQualySession) {
+				if (!onChampionship) {
 					room.setPlayerTeam(player.id,_Circuit.Team);
 					room.setPlayerDiscProperties(player.id, {cGroup: room.CollisionFlags.c0});
 					qualyPosReset(player);
 					room.sendAnnouncement("Ya no estás AFK!", player.id, 0x24DCF0, "bold", 2)
-					return false;
 				}
 				else {
-					room.sendAnnouncement(`📢 Estás en una sesión de campeonato, no podés ingresar a la pista. Ante error comunicarse con STAFF o revisar tu nombre en el Excel.`, player.id, 0xA5FF78, "bold", 2);
-					return false;
+					if (driversNames.includes(player.name)) {
+						room.setPlayerTeam(player.id,_Circuit.Team);
+						room.setPlayerDiscProperties(player.id, {cGroup: room.CollisionFlags.c0});
+						qualyPosReset(player);
+						room.sendAnnouncement("Ya no estás AFK!", player.id, 0x24DCF0, "bold", 2)
+					}
+					else {
+						room.sendAnnouncement(`📢 Estás en una sesión de campeonato, no podés ingresar a la pista. Ante error comunicarse con STAFF o revisar tu nombre en el Excel.`, player.id, 0xA5FF78, "bold", 2);
+					}
 				}
+				room.sendAnnouncement("Ya no estás AFK!", player.id, 0x24DCF0, "bold", 2)
+				return false;
 			}
-			if (onRaceSession) {
+			
+			else {
 				room.sendAnnouncement(`Volverás a la pista en la siguiente sesión`, player.id, 0x2FDE52, "italic", 2);
-				delete afkPlayers[player.id];
 			}
 			return false;
 		}
