@@ -1634,10 +1634,9 @@ room.onPlayerChat = function(player,message){
 					}
 				}
 				room.sendAnnouncement("Ya no estás AFK!", player.id, 0x24DCF0, "bold", 2)
-				return false;
 			}
-			
 			else {
+				room.sendAnnouncement("Ya no estás AFK!", player.id, 0x24DCF0, "bold", 2)
 				room.sendAnnouncement(`Volverás a la pista en la siguiente sesión`, player.id, 0x2FDE52, "italic", 2);
 			}
 			return false;
