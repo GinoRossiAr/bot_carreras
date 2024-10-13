@@ -1133,6 +1133,9 @@ function checkPlayerLapsRace() {
                 setDriverAvatar(p, playerData.currentPosition);
             }
         }
+		if (ifInSlowZone(p)) {
+			slowPlayer(p);
+		}
     });
 }
 
