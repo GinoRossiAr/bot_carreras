@@ -560,7 +560,28 @@ championshipStandings = [
 	{name: racer2, points: number}
 ];
 */
-
+let f1Standings = [
+	{name: "Russia // Khan J", points: 25},
+	{name: "Saxx_", points: 20},
+	{name: "canø", points: 16},
+	{name: "Moreno Martins", points: 12},
+	{name: "chimiichan", points: 10},
+	{name: "Sery1493", points: 8},
+	{name: "Uruwhy", points: 6},
+	{name: 'pinola"', points: 4},
+	{name: "Juan Manuel Fangio", points: 2},
+	{name: "Mouu", points: 1}
+]
+let f2Standings = [
+	{name: "𝒮h𝔦ry𝔲", points: 16},
+	{name: "giannn", points: 16},
+	{name: "zdx!", points: 10},
+	{name: "Mate", points: 8},
+	{name: "Hemmingsen", points: 6},
+	{name: "Rax' 10", points: 4},
+	{name: "Zasko", points: 2},
+	{name: "Kiltro", points: 1},
+]
 //#endregion
 
 //Variables para Modo Publico
@@ -601,8 +622,8 @@ function ifInSlowZone(player) {
 function slowPlayer(player) {
     const playerDiscProps = room.getPlayerDiscProperties(player.id);
     room.setPlayerDiscProperties(player.id, {
-        xspeed: playerDiscProps.xspeed * 0.97,
-        yspeed: playerDiscProps.yspeed * 0.97
+        xspeed: playerDiscProps.xspeed * 0.985,
+        yspeed: playerDiscProps.yspeed * 0.985
     });
 }
 
@@ -819,7 +840,7 @@ async function showRaceResults() {
     for (const player of combinedResults) {
         const playerName = player.auth in playersAuth ? playersAuth[player.auth].name : player.name;
         const playerTime = Number.isInteger(player.timeRace) ? `+${player.timeRace} LAPS` : serializeTimeRace(player.timeRace);
-        const points = onChampionship ? `\t|\t${scoringSystem[pos] != null ? "+" + scoringSystem[pos].toString() + (player.name == _Circuit.BestTime[1] ? " (+1 Vuelta rápida)" : "") : "Sin puntos"}`: "";
+        const points = onChampionship ? `\t|\t${scoringSystem[pos] != null ? "+" + scoringSystem[pos].toString() : "Sin puntos"}${player.name == _Circuit.BestTime[1] ? " (+1 Vuelta rápida)" : ""}` : "";
         const resultLine = `${++pos}\t|\t${playerName}\t|\t${playerTime}${points}`;
 
         // Usar colores diferentes para los tres primeros lugares
@@ -1007,7 +1028,7 @@ function handleRace(player, playerData, exactLapTime, startTime) {
 		let newLeader = room.getPlayerList().find(p => playersID[p.id].auth === newLeaderAuth);
 	
 		// Anunciar el líder si ha cambiado, SOLO cuando el lider pasa por meta
-		if ((currentLeader == undefined || currentLeader.auth !== newLeader.auth || currentLeader.auth === newLeader.auth) && player.auth == newLeader.auth) {
+		if (currentLeader == undefined || player.auth == newLeader.auth) {
 			setLeader(newLeader);
 			announceLeader(newLeader);
 			currentPosition = indexRace + 1; // Debería ser 1 siempre
@@ -1543,16 +1564,6 @@ function setRaceSession(lapsRace = DEFAULT_LAPS){
 			setPlayerConfig(player);
 			room.setPlayerTeam(player.id,_Circuit.Team);
 		});
-		let playersCount = getPlayersInTrack().length
-		room.sendAnnouncement(`CANTIDAD DE JUGADORES: ${playersCount}`, null, 0xF0E916, "bold", 2);
-		if (playersCount >= 15) {
-			scoringSystem = scoringSystemMax
-			room.sendAnnouncement(`📢 La puntuación tendrá el formato normal`, null, 0xF0E916, "bold", 2);
-		}
-		else {
-			scoringSystem = scoringSystemMin
-			room.sendAnnouncement(`📢 La puntuación tendrá el formato reducido`, null, 0xF0E916, "bold", 2);
-		}
 	}
 	
 	onRaceSession = true;
@@ -1618,6 +1629,23 @@ room.onGameStart = function(byPlayer){
 			room.sendAnnouncement(`No se ha configurado ninguna sesión`,player.id);
 		});
 		room.stopGame();
+	}
+	if (onRaceSession) {
+		if (onChampionship) {
+			if (onChampionship) {
+				let playersCount = getPlayersInTrack().length
+				console.log(`Cantidad de jugadores: ${playersCount}`);
+				room.sendAnnouncement(`CANTIDAD DE JUGADORES: ${playersCount}`, null, 0xF0E916, "bold", 2);
+				if (playersCount >= 15) {
+					scoringSystem = scoringSystemMax
+					room.sendAnnouncement(`📢 La puntuación tendrá el formato normal`, null, 0xF0E916, "bold", 2);
+				}
+				else {
+					scoringSystem = scoringSystemMin
+					room.sendAnnouncement(`📢 La puntuación tendrá el formato reducido`, null, 0xF0E916, "bold", 2);
+				}
+			}
+		}
 	}
 	
 	// Para que sessionStarted no sea siempre true y así poder volver a revisar en onGameTick
@@ -2071,8 +2099,10 @@ room.onPlayerChat = function(player,message){
 					let drivers = getCurrentSessionList();
 					let spectators = getSpects();
 
-					if(id < 1 || id > drivers.length || id == undefined || isNaN(id) || drivers[id] == undefined){
+					if(id < 1 || id > drivers.length || id == undefined || isNaN(id) || drivers[id - 1] == undefined){
 						room.sendAnnouncement(`Ese jugador no se encuentra en la lista`,player.id,colors.mapLoadDeny,fonts.mapLoadDeny,sounds.mapLoadDeny);
+						manualCameraControl = false;
+						idCamera = 0;
 					}
 					else{
 						console.log(`seteando variable camara manual`);
@@ -2105,10 +2135,12 @@ room.onPlayerChat = function(player,message){
 			}
 			else if (messageNormalized == '!f1') {
 				driversNames = f1Names;
+				championshipStandings = f1Standings;
 				return false;
 			}
 			else if (messageNormalized == '!f2') {
 				driversNames = f2Names;
+				championshipStandings = f2Standings;
 				return false;
 			}
 			/*else if (messageNormalized == '!puntos1') {
@@ -2129,11 +2161,11 @@ room.onPlayerChat = function(player,message){
 	}
 }
 
-room.onPlayerKicked = function(kickedPlayer, reason, ban, byPlayer){
+/*room.onPlayerKicked = function(kickedPlayer, reason, ban, byPlayer){
 	if (ban) {
 		bannedsConn.push(kickedPlayer.conn)
 	}
-}
+}*/
 
 
 room.onPlayerJoin = function(player){
