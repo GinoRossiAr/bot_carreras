@@ -1636,7 +1636,6 @@ room.onPlayerChat = function(player,message){
 						room.sendAnnouncement(`📢 Estás en una sesión de campeonato, no podés ingresar a la pista. Ante error comunicarse con STAFF o revisar tu nombre en el Excel.`, player.id, 0xA5FF78, "bold", 2);
 					}
 				}
-				room.sendAnnouncement("Ya no estás AFK!", player.id, 0x24DCF0, "bold", 2)
 			}
 			else {
 				room.sendAnnouncement("Ya no estás AFK!", player.id, 0x24DCF0, "bold", 2)

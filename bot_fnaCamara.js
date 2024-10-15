@@ -1023,23 +1023,26 @@ function handleRace(player, playerData, exactLapTime, startTime) {
         raceResults.push({ name: player.name, timeRace: scoresTime });
         room.setPlayerTeam(player.id, 0);
     } else {
+
 		// Determinar el líder
 		let newLeaderAuth = raceList[0].auth;
 		let newLeader = room.getPlayerList().find(p => playersID[p.id].auth === newLeaderAuth);
 	
 		// Anunciar el líder si ha cambiado, SOLO cuando el lider pasa por meta
-		if (currentLeader == undefined || player.auth == newLeader.auth) {
-			setLeader(newLeader);
-			announceLeader(newLeader);
-			currentPosition = indexRace + 1; // Debería ser 1 siempre
-			playerData.currentPosition = currentPosition;
-			console.log(`currentposition lid: ${currentPosition}`)
-		}
-
-		if (player.auth != newLeader.auth) {
-			currentPosition++;
-			playerData.currentPosition = currentPosition;
-			console.log(`currentposition: ${currentPosition}`)
+		if (currentLeader == undefined || currentLeader.auth !== newLeader.auth) {
+			if (player.auth == newLeader.auth) {
+				setLeader(newLeader);
+				announceLeader(newLeader);
+				currentPosition = indexRace + 1; // Debería ser 1 siempre
+				playerData.currentPosition = currentPosition;
+				console.log(`currentposition lid: ${currentPosition}`);
+			}
+		} else {
+			if (player.auth != newLeader.auth) {
+				currentPosition++;
+				playerData.currentPosition = currentPosition;
+				console.log(`currentposition: ${currentPosition}`);
+			}
 		}
         room.sendAnnouncement(`Vuelta actual: ${playerData.currentLap}/${laps} | Pos. ${playerData.currentPosition}`, player.id, colors.lapChanged, fonts.lapChanged, sounds.lapChanged);
     }
