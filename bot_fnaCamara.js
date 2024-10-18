@@ -331,7 +331,7 @@ let f2Names = [
 	"Mate",
 	"|Migue",
 	"Kiltro",
-	"#MW cx´",
+	"Cxerro | #NS",
 	"zdx!",
 	"Bam25",
 	"Zasko",
