@@ -942,8 +942,7 @@ function handleRace(player, playerData, exactLapTime, startTime) {
 				playerData.currentPosition = currentPosition;
 				console.log(`currentposition lid: ${currentPosition}`);
 			}
-		} else {
-			if (player.auth != newLeader.auth) {
+			else if (player.auth != newLeader.auth) {
 				currentPosition++;
 				playerData.currentPosition = currentPosition;
 				console.log(`currentposition: ${currentPosition}`);
