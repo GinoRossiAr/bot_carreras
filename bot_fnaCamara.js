@@ -337,12 +337,12 @@ let f2Names = [
 	"Zasko",
 	"Raid",
 	"ianR15",
-	"ElJereKlien",
 	"DonD",
 	"Ricciardelli",
 	"𝒮h𝔦ry𝔲",
 	"Kev1",
-	"Aspen102.3"
+	"Aspen102.3",
+	"Nicolas Fonsekroos"
 ]
 
 let f1Names = [
@@ -372,7 +372,6 @@ let driversNames = [
 	"Bam25",
 	"Ximbastian Vettel",
 	"Adil",
-	"ElJereKlien",
 	"[MF] matee Boca",
 	"sanTos",
 	"Russia // Khan J",
@@ -442,8 +441,10 @@ let driversNames = [
 	"Ricciardelli",
 	"𝒮h𝔦ry𝔲",
 	"Kev1",
-	"Aspen102.3"
+	"Aspen102.3",
+	"Nicolas Fonsekroos"
 ]
+
 
 
 var multipleAdminAccounts = {};
@@ -1029,7 +1030,8 @@ function handleRace(player, playerData, exactLapTime, startTime) {
 		let newLeader = room.getPlayerList().find(p => playersID[p.id].auth === newLeaderAuth);
 	
 		// Anunciar el líder si ha cambiado, SOLO cuando el lider pasa por meta
-		if (currentLeader == undefined || currentLeader.auth !== newLeader.auth) {
+		// Anunciar el líder si ha cambiado, SOLO cuando el lider pasa por meta
+		if (currentLeader == undefined || newLeader) {
 			if (player.auth == newLeader.auth) {
 				setLeader(newLeader);
 				announceLeader(newLeader);
@@ -1037,13 +1039,13 @@ function handleRace(player, playerData, exactLapTime, startTime) {
 				playerData.currentPosition = currentPosition;
 				console.log(`currentposition lid: ${currentPosition}`);
 			}
-		} else {
-			if (player.auth != newLeader.auth) {
+			else if (player.auth != newLeader.auth) {
 				currentPosition++;
 				playerData.currentPosition = currentPosition;
 				console.log(`currentposition: ${currentPosition}`);
 			}
 		}
+		
         room.sendAnnouncement(`Vuelta actual: ${playerData.currentLap}/${laps} | Pos. ${playerData.currentPosition}`, player.id, colors.lapChanged, fonts.lapChanged, sounds.lapChanged);
     }
 

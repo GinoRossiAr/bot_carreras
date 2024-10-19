@@ -363,12 +363,12 @@ let f2Names = [
 	"Zasko",
 	"Raid",
 	"ianR15",
-	"ElJereKlien",
 	"DonD",
 	"Ricciardelli",
 	"𝒮h𝔦ry𝔲",
 	"Kev1",
-	"Aspen102.3"
+	"Aspen102.3",
+	"Nicolas Fonsekroos"
 ]
 
 let f1Names = [
@@ -398,7 +398,6 @@ let driversNames = [
 	"Bam25",
 	"Ximbastian Vettel",
 	"Adil",
-	"ElJereKlien",
 	"[MF] matee Boca",
 	"sanTos",
 	"Russia // Khan J",
@@ -468,7 +467,8 @@ let driversNames = [
 	"Ricciardelli",
 	"𝒮h𝔦ry𝔲",
 	"Kev1",
-	"Aspen102.3"
+	"Aspen102.3",
+	"Nicolas Fonsekroos"
 ]
 
 
@@ -496,7 +496,12 @@ var teams = ["spectators","red","blue"];
 
 let bannedPlayers = [
 	{name: 'PEPE', conn: '3138362E3132392E3232322E313036'},
-	{name: 'Softendo', conn: '3138392E38342E3138312E3335'}
+	{name: 'Softendo', conn: '3138392E38342E3138312E3335'},
+	{name: '.', conn: '3139302E3234352E3132312E313933'},
+	{name: '     mkz!!', conn: '3139302E3131322E38352E313631'},
+	{name: 'Softendo', conn: '3138392E38342E3137362E323038'},
+	{name: 'COLAPINTO', conn: '3139302E3131322E39392E313632'},
+	{name: '1', conn: '3138362E3133372E3138302E3533'}
 ];
 
 // conn de sery 3137392E32352E3231392E313333
@@ -1876,15 +1881,15 @@ room.onPlayerChat = function(player,message){
 		return false;
 	}
 	else if (adminsNames.includes(player.name) && player.admin) {
-		room.sendAnnouncement(`[👮 MOD 👮] ${player.name}: ${message}`, null, 0xFF33D0, "normal", 1);
+		room.sendAnnouncement(`[👮 MOD 👮] ${player.name}: ${message}`, null, 0xFF9EEF, "normal", 1);
 		return false;
 	}
 	else if (f1Names.includes(player.name)) {
-		room.sendAnnouncement(`[🔴 PILOTO F1 🏎️] ${player.name}: ${message}`, null, 0xFF615C, "normal", 1);
+		room.sendAnnouncement(`[🔴 PILOTO F1 🏎️] ${player.name}: ${message}`, null, 0xFF7E75, "normal", 1);
 		return false;
 	}
 	else if (f2Names.includes(player.name)) {
-		room.sendAnnouncement(`[🔵 PILOTO F2 🏎️] ${player.name}: ${message}`, null, 0x0080ff, "normal", 1);
+		room.sendAnnouncement(`[🔵 PILOTO F2 🏎️] ${player.name}: ${message}`, null, 0x0AADFF, "normal", 1);
 		return false;
 	}
 }
@@ -1910,7 +1915,8 @@ room.onPlayerKicked = function(kickedPlayer, reason, ban, byPlayer) {
 room.onPlayerJoin = function(player){
 	console.log(`${player.name} has joined`);
 	let idJoined = player.id;
-	room.sendAnnouncement("Bienvenido a la Fórmula Nacional Argentina, unite a nuestro DISCORD: https://discord.gg/j5EnBaYJjw para enterarte de las últimas novedades del campeonato", idJoined, 0xF0E916, "bold", 2)
+	room.sendAnnouncement("Bienvenido a la Fórmula Nacional Argentina, unite a nuestro DISCORD: https://discord.gg/j5EnBaYJjw para ser parte de la comunidad!", idJoined, 0xF0E916, "bold", 2);
+	room.sendAnnouncement("ESTE HOST ESTÁ ABIERTO 24/7 GRACIAS A CAMPI", idJoined, 0xF0E916, "bold", 2);
 
 
 	let isNewPlayer = checkPlayerAdmin(player);
