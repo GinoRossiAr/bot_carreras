@@ -611,6 +611,16 @@ function ifInLapChangeZone(player){
 	return _Circuit.MinX <= room.getPlayerDiscProperties(player.id).x && room.getPlayerDiscProperties(player.id).x <= _Circuit.MaxX && _Circuit.MinY <= room.getPlayerDiscProperties(player.id).y && room.getPlayerDiscProperties(player.id).y <= _Circuit.MaxY;
 }
 
+function isDrivingInCorrectDirection(player) {
+    const playerDiscProps = room.getPlayerDiscProperties(player.id);
+    if (_Circuit.StartDirection == "X") {
+        return Math.sign(playerDiscProps.xspeed) == _Circuit.DriveDirection;
+    } else if (_Circuit.StartDirection == "Y") {
+        return Math.sign(playerDiscProps.yspeed) == _Circuit.DriveDirection;
+    }
+    return true;
+}
+
 function serializeSeconds(seconds){
 	return seconds.toFixed(3);
 }
