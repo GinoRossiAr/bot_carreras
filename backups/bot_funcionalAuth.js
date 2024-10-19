@@ -733,7 +733,7 @@ function followFirstPlayer() {
 }
 
 
-function checkRaceList() {
+/* function checkRaceList() {
     let drivers = getPlayersInTrack();
     let activeDriversMap = new Map();
 
@@ -753,12 +753,12 @@ function checkRaceList() {
             }
         }
     }
-}
+}*/
 
 
 function raceSession(){
 	checkPlayerLapsRace();
-	checkRaceList();
+	// checkRaceList();
 	
 	if (!stopCamera) {
 		followFirstPlayer();
@@ -973,10 +973,10 @@ function handleRace(player, playerData, exactLapTime, startTime) {
 
 
 function checkPlayerLapsRace() {
-    var players = room.getPlayerList().filter(p => room.getPlayerDiscProperties(p.id) != null);
+	var players = getPlayersInTrack();
 
-    players.forEach(p => {
-        const playerDiscProps = room.getPlayerDiscProperties(p.id);
+	players.forEach(p => {
+		const playerDiscProps = room.getPlayerDiscProperties(p.id);
         const playerData = driversList[p.id];
 
         // Actualizar la posición anterior del jugador en cada gameTick
@@ -986,34 +986,57 @@ function checkPlayerLapsRace() {
         let previousPos = playerData.previousPos || currentPos;
         playerData.previousPos = currentPos;
 
-        if (!ifInLapChangeZone(p) && playerData.lapChanged) {
+		if (!ifInLapChangeZone(p) && playerData.lapChanged) {
             playerData.lapChanged = false;
         }
 
         if (!ifInLapChangeZone(p) && sessionStarted && !playerData.startedRace) {
             playerData.startedRace = true;
         }
-
-        if (ifInLapChangeZone(p)) {
-            if (!isDrivingInCorrectDirection(p)) {
+		
+		if (ifInLapChangeZone(p)) {
+            if (_Circuit.StartDirection == "X" && Math.sign(playerDiscProps.xspeed) == -1 * _Circuit.DriveDirection) {
+                room.kickPlayer(p.id, "Trolling detected!", false);
+            } else if (_Circuit.StartDirection == "Y" && Math.sign(playerDiscProps.yspeed) == -1 * _Circuit.DriveDirection) {
                 room.kickPlayer(p.id, "Trolling detected!", false);
             } else if (!playerData.lapChanged) {
                 playerData.lapChanged = true;
                 playerData.lapTimes[0] = currentTime;
                 playerData.currentLap++;
 
-                var id = p.id;
+				var id = p.id;
 
-                // Calcular el tiempo exacto de cruce de la línea de meta
-                let finishLinePosition = _Circuit.StartDirection === "X" ? (_Circuit.DriveDirection === 1 ? _Circuit.MaxX : _Circuit.MinX) : (_Circuit.DriveDirection === 1 ? _Circuit.MaxY : _Circuit.MinY);
-                let exactLapTime = calculateExactTime(previousPos, currentPos, _Circuit.StartDirection, finishLinePosition);
+				// Calcular el tiempo exacto de cruce de la línea de meta
+                let exactLapTime = currentTime;
+                let ratio = 0; // Inicializar ratio
+                if (_Circuit.StartDirection == "X" && previousPos.x !== currentPos.x) {
+                    let finishLineX = _Circuit.DriveDirection === 1 ? _Circuit.MaxX : _Circuit.MinX;
+                    let deltaX = previousPos.x - currentPos.x;
+                    if (deltaX !== 0) {
+                        ratio = (previousPos.x - finishLineX) / deltaX;
+                        if (!isNaN(ratio) && isFinite(ratio)) {
+                            exactLapTime = previousPos.time + ratio * (currentPos.time - previousPos.time);
+                        }
+                    }
+                    console.log(`Player: ${p.name}, Finish Line X: ${finishLineX}, Delta X: ${deltaX}, Ratio: ${ratio}, Exact Lap Time: ${exactLapTime}`);
+                } else if (_Circuit.StartDirection == "Y" && previousPos.y !== currentPos.y) {
+                    let finishLineY = _Circuit.DriveDirection === 1 ? _Circuit.MaxY : _Circuit.MinY;
+                    let deltaY = previousPos.y - currentPos.y;
+                    if (deltaY !== 0) {
+                        ratio = (previousPos.y - finishLineY) / deltaY;
+                        if (!isNaN(ratio) && isFinite(ratio)) {
+                            exactLapTime = previousPos.time + ratio * (currentPos.time - previousPos.time);
+                        }
+                    }
+                    console.log(`Player: ${p.name}, Finish Line Y: ${finishLineY}, Delta Y: ${deltaY}, Ratio: ${ratio}, Exact Lap Time: ${exactLapTime}`);
+                }
 
-                // Calcular el tiempo de vuelta
+
+				 // Calcular el tiempo de vuelta
                 let lapTime = exactLapTime - (playerData.lastExactLapTime || exactLapTime);
                 playerData.lastExactLapTime = exactLapTime; // Actualizar el tiempo exacto de la última vuelta
-                if (playerData.currentLap == 1) {
-                    startTime = exactLapTime;
-                }
+
+                console.log(`Player: ${p.name}, Lap Time: ${lapTime}, Current Lap: ${playerData.currentLap}`);
 
                 if (playerData.currentLap > 1) {
                     room.sendAnnouncement(`⏱ Vuelta ${playerData.currentLap - 1}: ${serializeSeconds(lapTime)}s`, p.id, colors.lapTime, fonts.lapTime, sounds.lapTime);
@@ -1024,8 +1047,42 @@ function checkPlayerLapsRace() {
                     }
                 }
 
-                // Manejo de la raceList
-                handleRace(p, playerData, exactLapTime, startTime);
+                if (playerData.currentLap > laps) {
+                    if (playerData.currentLap > ongoingLap && !leaderFinished) {
+                        leaderFinished = true;
+                        announceWinner(p);
+                        console.log(`winnerif: ${p.name}`);
+                    } else if (leaderFinished) {
+                        finalPosition += 1;
+                        console.log(`p${finalPosition}: ${p.name}`);
+                        room.sendAnnouncement(`Terminaste en la posición ${finalPosition}`, p.id, colors.playerInResults, fonts.playerInResults, sounds.playerInResults);
+                    }
+                    console.log(`meta: ${p.name}`);
+                    scoresTime = (exactLapTime - startTime);
+                    raceResults.push({ name: p.name, timeRace: scoresTime });
+                    room.setPlayerTeam(p.id, 0);
+                } else {
+                    if (currentLeader == undefined || afkPlayers[currentLeader.id]) {
+                        setLeader(p);
+                        currentPosition = 0;
+                        if (playerData.currentLap <= laps) {
+                            announceLeader(p);
+                        } else {
+                            leaderFinished = true;
+                            announceWinner(p);
+                        }
+                    } else if (playerData.currentLap > ongoingLap) {
+                        setLeader(p);
+                        announceLeader(p);
+                        currentPosition = 0;
+                    }
+					if (playerData.currentLap == 1) {
+						startTime = currentTime;
+					}
+                    currentPosition += 1;
+                    room.sendAnnouncement(`Vuelta actual: ${playerData.currentLap}/${laps} | Pos. ${currentPosition}`, p.id, colors.lapChanged, fonts.lapChanged, sounds.lapChanged);
+                    console.log(`pos: ${currentPosition} waso: ${p.name}`);
+                }
             }
         }
     });
