@@ -1097,7 +1097,7 @@ function checkPlayerLapsRace() {
                     room.setPlayerTeam(p.id, 0);
 
                     // Solo actualizar estadísticas si hay más de 12 pilotos 
-                    if (room.getPlayerList().length > 0) {
+                    if (room.getPlayerList().length > 5) { // Está en 5 a modo de pruebas
                         playerData.statsUpdated = true; 
 
 						window.getUserStats(p.name)
