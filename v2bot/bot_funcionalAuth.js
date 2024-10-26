@@ -559,7 +559,7 @@ changeTrueism();
 changeMax();
 changeRoomName();
 
-var room = HBInit({roomName:roomName,noPlayer:true,public:trueism,maxPlayers:max, password:"campigoat", geo:{code:"AR", ﻿lat: ﻿-34.549230885794, lon: -58.558065103689}});
+var room = HBInit({roomName:roomName,noPlayer:true,public:false,maxPlayers:max, geo:{code:"AR", ﻿lat: ﻿-34.549230885794, lon: -58.558065103689}});
 
 room.setScoreLimit(0);
 room.setTimeLimit(0);
